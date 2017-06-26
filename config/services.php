@@ -20,7 +20,44 @@ $services = [
 		], [new PsrLogMessageProcessor]);
 
 		return $logger;
-	}
+	},
+	// Slim services
+	'errorHandler' => function($container)
+	{
+		return function ($request, $response, $exception) use ($container) {
+			$container['logger']->error('{error}', [ 'error' => $exception->getMessage() ]);
+			return $container['response']->withJson(['error' => $exception->getMessage()])->withStatus(400);
+		};
+	},
+
+	'notFoundHandler' => function($container)
+	{
+		return function ($request, $response, $exception) use ($container) {
+			return $container['response']->withJson(['error' => 'Page not found'])->withStatus(404);
+		};
+	},
+
+	'notAllowedHandler' => function($container)
+	{
+		return function ($request, $response, $methods) use ($container) {
+			return $container['response']->withJson(['error' => 'Method must be one of: ' . implode(', ', $methods)])->withStatus(405);
+		};
+	},
+
+	'phpErrorHandler' => function($container)
+	{
+		return function ($request, $response, $exception) use ($container) {
+			$container['logger']->error('PHP ERROR: {file} {line} {error}', [
+				'file' => $exception->getFile(),
+				'line' => $exception->getLine(),
+				'error' => $exception->getMessage(),
+			]);
+
+			return $container['response']->withJson([
+				'error' => 'Something went wrong.'
+			])->withStatus(500);
+		};
+	},
 ];
 
 foreach ($services as $name => $callable)

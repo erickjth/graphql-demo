@@ -2,6 +2,8 @@
 
 namespace Demo\Middleware;
 
+use Demo\Data\DataSource;
+use Demo\GraphQL\Type\QueryType;
 use GraphQL\{GraphQL, Schema};
 use Interop\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -38,15 +40,44 @@ class GraphQLServerMiddleware
 	 */
 	public function __invoke(ServerRequestInterface $request, ResponseInterface $response, array $args)
 	{
-		// $schema = new Schema([
-		// 	'query' => null, // Query Type
-		// 	'mutation' => null, // MutationType
-		// ]);
+		$requestBody = $request->getParsedBody();
 
-		$this->container['logger']->info('New request!!');
+		// Get information from post body
+		$query = $requestBody['query'] ?? null;
+		$variableValues = $requestBody['variables'] ?? null;
+		$operationName = $requestBody['operationName'] ?? null;
 
-		return $response->withJson([
-			'Hello' => 'Jobsity'
+		if (is_array($variableValues) === false)
+		{
+			$variableValues = json_decode((string)$variableValues, true);
+		}
+
+		// Log request
+		$this->container['logger']->info("Query: {query}\nVariables: {variables}.\nOperation: {operationName}", [
+			'query' => preg_replace('#(\r|\n|\t)+#i', '', $query),
+			'variables' => $variableValues,
+			'operationName' => $operationName,
 		]);
+
+		// Get defined schema
+		$schema = new Schema([
+			'query' => QueryType::getInstance(), // Query Type
+			// 'mutation' => null, // MutationType
+		]);
+
+		// Initialize data source
+		DataSource::init();
+
+		// Execute the sent query against the existing schema
+		$result = GraphQL::execute($schema, $query, null, $this, $variableValues, $operationName);
+
+		$errors = $result['errors'] ?? null;
+
+		if ($errors !== null && $this->container['settings']['dev'] === false)
+		{
+			throw new \Exception($errors[0]['message'] ?? 'Unknown error.');
+		}
+
+		return $response->withJson($result)->withStatus($errors ? 400 : 200);
 	}
 }
