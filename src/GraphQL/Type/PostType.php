@@ -34,14 +34,6 @@ class PostType extends ObjectType
 			'fields' => function () {
 				return [
 					'id' => Utils::globalIdField(self::$intance, 'id'),
-					'realId' => [
-						'type' => Type::string(),
-						'resolve' => function ($obj, $args, $context, ResolveInfo $info) {
-							$globalId = Utils::toGlobalId(self::$intance->toString(), $obj['id']);
-							$idComponents = Utils::fromGlobalId($globalId);
-							return $globalId;
-						}
-					],
 					'title' => Type::nonNull(Type::string()),
 					'body' => [
 						'type' => Type::nonNull(Type::string()),
