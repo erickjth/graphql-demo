@@ -62,4 +62,25 @@ class Utils
 			'id' => substr($unbasedGlobalId, $delimiterPos + 1)
 		];
 	}
+
+	/**
+	 * Get the real id from a provided globalId checking its object type.
+	 *
+	 * @param  string     $globalId  Global Id
+	 * @param  ObjectType $type      Object reference to check
+	 *
+	 * @return string               Real id
+	 */
+	public static function getIdFromGlobalId(string $globalId, ObjectType $type)
+	{
+		$componenent = self::fromGlobalId($globalId);
+
+		// Check Object type
+		if (isset($componenent['type']) === false || $componenent['type'] !== $type->toString())
+		{
+			throw new InvalidArgumentException('Invalid type for id ' . $globalId);
+		}
+
+		return $componenent['id'];
+	}
 }
