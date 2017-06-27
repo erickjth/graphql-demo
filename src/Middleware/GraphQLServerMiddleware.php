@@ -3,7 +3,7 @@
 namespace Demo\Middleware;
 
 use Demo\Data\DataSource;
-use Demo\GraphQL\Type\QueryType;
+use Demo\GraphQL\Type\{QueryType, MutationType};
 use GraphQL\{GraphQL, Schema};
 use Interop\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -62,7 +62,7 @@ class GraphQLServerMiddleware
 		// Get defined schema
 		$schema = new Schema([
 			'query' => QueryType::getInstance(), // Query Type
-			// 'mutation' => null, // MutationType
+			'mutation' => MutationType::getInstance(), // MutationType
 		]);
 
 		// Initialize data source
