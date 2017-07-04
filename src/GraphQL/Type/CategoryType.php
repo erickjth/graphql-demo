@@ -35,7 +35,6 @@ class CategoryType extends ObjectType
 				return [
 					'id' => Utils::globalIdField(self::$intance, 'id'),
 					'name' => Type::nonNull(Type::string()),
-					'email' => Type::nonNull(Type::string()),
 					'createdDt' => Type::nonNull(Type::string()),
 					'posts' => [
 						'type' => Type::listOf(PostType::getInstance()),
